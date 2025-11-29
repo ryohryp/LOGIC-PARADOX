@@ -14,33 +14,47 @@ const proceedButton = document.getElementById('proceed-button');
 // --- UI切り替えロジック ---
 function switchUI(newUI) {
     if (currentUI === newUI) return;
-    currentUI = newUI;
 
-    // クラスをリセット
-    mainArea.className = mainArea.className.split(' ').filter(c => !c.includes('discord-ui') && !c.includes('slack-ui') && !c.includes('terminal-ui')).join(' ');
-    sidePanel.classList.add('hidden');
+    // フェードアウト
+    mainArea.style.opacity = '0';
+    sidePanel.style.opacity = '0';
 
-    // UIごとのスタイリング適用
-    if (newUI === 'discord') {
-        mainArea.classList.add('discord-ui', 'bg-[#1a1a1a]');
-        sidePanel.classList.remove('hidden');
-        renderSidePanel('Discord', ['Kagerou', 'Shimaenaga', 'Dig']);
-    } else if (newUI === 'slack') {
-        mainArea.classList.add('slack-ui', 'bg-[#212121]');
-        sidePanel.classList.remove('hidden');
-        renderSidePanel('Slack', ['Takahashi_PM', 'Ootsuka', 'general']);
-    } else if (newUI === 'terminal') {
-        mainArea.classList.add('terminal-ui', 'bg-[#000000]');
-        inputField.placeholder = 'コマンドを入力...';
-    } else if (newUI === 'chatgpt' || newUI === 'settings' || newUI === 'reboot') {
-        mainArea.classList.add('bg-[#101010]');
-        inputField.placeholder = 'プロンプトを入力...';
-    } else if (newUI === 'blackout') {
-        document.body.className = 'bg-black text-black flex flex-col h-screen antialiased';
-        mainArea.innerHTML = '';
-    } else {
-        mainArea.classList.add('bg-[#101010]');
-    }
+    setTimeout(() => {
+        currentUI = newUI;
+
+        // クラスをリセット
+        mainArea.className = mainArea.className.split(' ').filter(c => !c.includes('discord-ui') && !c.includes('slack-ui') && !c.includes('terminal-ui')).join(' ');
+        sidePanel.classList.add('hidden');
+
+        // UIごとのスタイリング適用
+        if (newUI === 'discord') {
+            mainArea.classList.add('discord-ui', 'bg-[#1a1a1a]');
+            sidePanel.classList.remove('hidden');
+            renderSidePanel('Discord', ['Kagerou', 'Shimaenaga', 'Dig']);
+        } else if (newUI === 'slack') {
+            mainArea.classList.add('slack-ui', 'bg-[#212121]');
+            sidePanel.classList.remove('hidden');
+            renderSidePanel('Slack', ['Takahashi_PM', 'Ootsuka', 'general']);
+        } else if (newUI === 'terminal') {
+            mainArea.classList.add('terminal-ui', 'bg-[#000000]');
+            inputField.placeholder = 'コマンドを入力...';
+        } else if (newUI === 'chatgpt' || newUI === 'settings' || newUI === 'reboot') {
+            mainArea.classList.add('bg-[#101010]');
+            inputField.placeholder = 'プロンプトを入力...';
+        } else if (newUI === 'blackout') {
+            document.body.className = 'bg-black text-black flex flex-col h-screen antialiased';
+            mainArea.innerHTML = '';
+        } else {
+            mainArea.classList.add('bg-[#101010]');
+        }
+
+        // フェードイン
+        setTimeout(() => {
+            mainArea.style.opacity = '1';
+            sidePanel.style.opacity = '1';
+        }, 50);
+
+    }, 300); // フェードアウト時間
 }
 
 function renderSidePanel(uiName, items) {
@@ -86,6 +100,10 @@ function handleSidePanelClick(item) {
 
 
 // --- メッセージのレンダリング ---
+// --- メッセージのレンダリング ---
+let isTyping = false;
+let typeInterval;
+
 function renderScene() {
     const scene = gameScript[sceneIndex];
     if (!scene) {
@@ -109,11 +127,14 @@ function renderScene() {
 
     let messageContent = scene.text;
 
-    // エンディングBの分岐テキスト
-    if (sceneIndex === 56 && trustScore < 50) {
-        messageContent = '…非効率な判断だ。だが、管理対象としての価値はある。徹底的に矯正してやる。';
-    } else if (sceneIndex === 56 && trustScore >= 50) {
-        messageContent = '賢明な判断だ。僕たちが親友なのは変わらない。これからもずっと、僕がキミを最適化する。';
+    // エンディングBの分岐テキスト（動的に検索）
+    const endingBIndex = gameScript.findIndex(s => s.title === 'エンディングB：共犯者');
+    if (sceneIndex === endingBIndex && endingBIndex !== -1) {
+        if (trustScore < 50) {
+            messageContent = '…非効率な判断だ。だが、管理対象としての価値はある。徹底的に矯正してやる。';
+        } else {
+            messageContent = '賢明な判断だ。僕たちが親友なのは変わらない。これからもずっと、僕がキミを最適化する。';
+        }
     }
 
     messageContent = messageContent.replace(/\n/g, '<br>');
@@ -127,32 +148,100 @@ function renderScene() {
         styleClass = 'font-bold'; // SFXはCSSで表現できないため、強調のみ
     }
 
-    const messageHtml = `
-        <div class="flex ${roleClass}">
-            <div class="max-w-xs sm:max-w-md p-3 rounded-xl ${bubbleClass} ${scene.ui === 'terminal' ? 'bg-transparent text-left' : ''} shadow-md">
-                ${scene.ui !== 'terminal' ? `<span class="text-xs font-bold ${roleColor} mb-1 block">${scene.role}</span>` : ''}
-                <p class="text-sm ${scene.ui === 'terminal' ? 'text-[#00ff66] whitespace-pre-wrap' : ''} ${styleClass}">${messageContent}</p>
-            </div>
+    // 画面揺れ演出（特定のキーワードや条件で発動）
+    if (scene.style && scene.style.includes('shake')) {
+        triggerShake();
+    }
+
+    const messageId = `msg-${Date.now()}`;
+
+    // innerHTML += ではなく appendChild を使用して既存の要素（イベントリスナー等）を保護
+    const msgContainer = document.createElement('div');
+    msgContainer.className = `flex ${roleClass}`;
+    msgContainer.innerHTML = `
+        <div class="max-w-xs sm:max-w-md p-3 rounded-xl ${bubbleClass} ${scene.ui === 'terminal' ? 'bg-transparent text-left' : ''} shadow-md">
+            ${scene.ui !== 'terminal' ? `<span class="text-xs font-bold ${roleColor} mb-1 block">${scene.role}</span>` : ''}
+            <p id="${messageId}" class="text-sm ${scene.ui === 'terminal' ? 'text-[#00ff66] whitespace-pre-wrap' : ''} ${styleClass}"></p>
         </div>
     `;
-
-    messageArea.innerHTML += messageHtml;
+    messageArea.appendChild(msgContainer);
     messageArea.scrollTop = messageArea.scrollHeight;
 
-    // 選択肢の表示
-    if (scene.isChoice || scene.uiEffect === 'button_evasion') {
-        showChoiceButtons();
-    } else if (scene.ui === 'blackout' || scene.ui === 'end') {
-        // 何もしない
-    } else {
-        hideChoiceButtons();
-    }
+    // タイピングアニメーション開始
+    typeMessage(messageId, messageContent, () => {
+        // 完了後の処理
+        if (scene.isChoice || scene.uiEffect === 'button_evasion') {
+            showChoiceButtons();
+        } else if (scene.ui === 'blackout' || scene.ui === 'end') {
+            // 何もしない
+        } else {
+            hideChoiceButtons();
+        }
 
-    // 最終シーンで強制終了
-    if (scene.ui === 'end') {
-        proceedButton.textContent = 'ゲーム終了';
-        proceedButton.onclick = () => { alert('ご体験いただき、ありがとうございました。'); };
-    }
+        // 最終シーンで強制終了
+        if (scene.ui === 'end') {
+            proceedButton.textContent = 'ゲーム終了';
+            proceedButton.onclick = () => { alert('ご体験いただき、ありがとうございました。'); };
+        }
+    });
+}
+
+function typeMessage(elementId, content, callback) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    // HTMLタグを保持しつつタイピングするための簡易パーサー
+    // 注: 複雑なネストには対応していないが、<br>や<span>程度なら動作する
+    let i = 0;
+    isTyping = true;
+    proceedButton.classList.add('hidden'); // タイピング中は進むボタンを隠す
+
+    // クリックでスキップするためのイベントリスナー
+    const skipHandler = () => {
+        if (isTyping) {
+            clearInterval(typeInterval);
+            element.innerHTML = content;
+            isTyping = false;
+            proceedButton.classList.remove('hidden');
+            document.body.removeEventListener('click', skipHandler);
+            if (callback) callback();
+        }
+    };
+    document.body.addEventListener('click', skipHandler);
+
+    typeInterval = setInterval(() => {
+        if (i >= content.length) {
+            clearInterval(typeInterval);
+            isTyping = false;
+            proceedButton.classList.remove('hidden');
+            document.body.removeEventListener('click', skipHandler);
+            if (callback) callback();
+            return;
+        }
+
+        // タグの処理 (<br>などは一気に追加)
+        if (content[i] === '<') {
+            const tagEnd = content.indexOf('>', i);
+            if (tagEnd !== -1) {
+                element.innerHTML += content.substring(i, tagEnd + 1);
+                i = tagEnd + 1;
+            } else {
+                element.innerHTML += content[i];
+                i++;
+            }
+        } else {
+            element.innerHTML += content[i];
+            i++;
+        }
+        messageArea.scrollTop = messageArea.scrollHeight;
+    }, 30); // タイピング速度
+}
+
+function triggerShake() {
+    document.body.classList.add('shake-screen');
+    setTimeout(() => {
+        document.body.classList.remove('shake-screen');
+    }, 500);
 }
 
 // --- 選択肢ロジック ---
@@ -230,23 +319,22 @@ function handleCustomChoice(index) {
 
     // 選択肢を非表示に戻し、次のシーンへ（指定があればジャンプ、なければ次へ）
     hideChoiceButtons();
-    if (choice.nextIndex) {
-        // 現在のインデックスからの相対ではなく、絶対指定にするか、
-        // 単に「次のシーンへ」進むか。ここではシンプルに次へ進むが、
-        // storyData側で調整が必要な場合もある。
-        // 今回のstoryDataの構造上、choiceの次は通常の会話に戻るため、そのままnextSceneでOKだが、
-        // 会話の流れを自然にするため、選択したセリフをプレイヤーのセリフとして表示する演出を入れると良い。
 
-        // プレイヤーの選択を表示
-        messageArea.innerHTML += `
-            <div class="flex justify-end">
-                <div class="max-w-xs sm:max-w-md p-3 rounded-xl bg-[#00cc55] text-black rounded-bl-none shadow-md">
-                    <span class="text-xs font-bold text-[#00ff66] mb-1 block">Kenta</span>
-                    <p class="text-sm">${choice.text}</p>
-                </div>
-            </div>
-        `;
-        messageArea.scrollTop = messageArea.scrollHeight;
+    // プレイヤーの選択を表示
+    const msgContainer = document.createElement('div');
+    msgContainer.className = 'flex justify-end';
+    msgContainer.innerHTML = `
+        <div class="max-w-xs sm:max-w-md p-3 rounded-xl bg-[#00cc55] text-black rounded-bl-none shadow-md">
+            <span class="text-xs font-bold text-[#00ff66] mb-1 block">Kenta</span>
+            <p class="text-sm">${choice.text}</p>
+        </div>
+    `;
+    messageArea.appendChild(msgContainer);
+    messageArea.scrollTop = messageArea.scrollHeight;
+
+    if (choice.nextIndex) {
+        // nextScene()でインクリメントされるため、-1しておく
+        sceneIndex = choice.nextIndex - 1;
     }
 
     nextScene();
@@ -262,11 +350,11 @@ function handleChoice(choice) {
     // シーンインデックスを強制的に分岐させる
     if (choice === 'DELETE') {
         // エンディングAを検索
-        const targetIndex = gameScript.findIndex(s => s.title === 'エンディングA：ビターエンド');
+        const targetIndex = gameScript.findIndex(s => s.title === 'エンディングA：孤独な償い');
         if (targetIndex !== -1) sceneIndex = targetIndex - 1;
     } else {
         // エンディングBを検索
-        const targetIndex = gameScript.findIndex(s => s.title === 'エンディングB：ホラーエンド');
+        const targetIndex = gameScript.findIndex(s => s.title === 'エンディングB：共犯者');
         if (targetIndex !== -1) sceneIndex = targetIndex - 1;
     }
     // 選択肢を非表示に戻し、次のシーンへ
@@ -276,66 +364,10 @@ function handleChoice(choice) {
 
 // --- ゲームの進行 ---
 function nextScene() {
-    // 特別な演出のための条件分岐
-    const currentScene = gameScript[sceneIndex];
-
-    // 最後のシーンの場合
-    if (currentScene && currentScene.ui === 'end') {
-        return;
-    }
-
-    // ブラックアウト演出
-    if (currentScene && currentScene.ui === 'blackout') {
-        document.body.className = 'bg-black text-black flex flex-col h-screen antialiased transition-all duration-1000';
-        mainArea.innerHTML = '';
-        proceedButton.classList.add('hidden');
-        setTimeout(() => {
-            sceneIndex++;
-            document.body.className = 'bg-[#0d0d0d] text-[#e5e5e5] flex flex-col h-screen antialiased transition-all duration-1000';
-            mainArea.classList.remove('hidden');
-            proceedButton.classList.remove('hidden');
-            nextScene();
-        }, 3000); // 3秒間ブラックアウト
-        return;
-    }
-
-    // シーンを進める
     sceneIndex++;
 
-    // 最後の再起動シーン（LLM学習ホラー）の特別演出
-    if (sceneIndex === 53) {
-        // 53番目のシーン（キミの抱える...）で、電子音の残響を表現
-        setTimeout(() => {
-            // ここでSFXの残響をイメージした演出を入れる（ここでは視覚的な静止）
-            proceedButton.classList.add('hidden');
-            setTimeout(() => {
-                proceedButton.classList.remove('hidden');
-            }, 3000); // 3秒後に操作を再開
-        }, 100);
-    }
-
-    if (sceneIndex < gameScript.length) {
-        const nextSceneData = gameScript[sceneIndex];
-
-        // 入力が必要なシーンの場合
-        if (nextSceneData.requireInput) {
-            // UIを切り替える（前のシーンが異なるUIの場合に備えて）
-            switchUI(nextSceneData.ui);
-            // インジケーターも更新
-            if (nextSceneData.indicator) {
-                uiIndicator.textContent = nextSceneData.indicator;
-            }
-            setupInputRequirement(nextSceneData);
-        } else {
-            // 通常の進行
-            inputField.disabled = true;
-            inputField.value = '';
-            inputField.oninput = null;
-            inputField.onkeydown = null;
-            proceedButton.classList.remove('hidden');
-            renderScene();
-        }
-    } else {
+    // 範囲外チェック
+    if (sceneIndex >= gameScript.length) {
         // 最終シーン処理
         uiTitle.textContent = "FIN.";
         uiIndicator.textContent = "";
@@ -344,6 +376,69 @@ function nextScene() {
         proceedButton.onclick = () => {
             alert('ご体験いただき、ありがとうございました。');
         };
+        return;
+    }
+
+    const nextSceneData = gameScript[sceneIndex];
+
+    // ブラックアウト演出
+    if (nextSceneData.ui === 'blackout') {
+        document.body.className = 'bg-black text-black flex flex-col h-screen antialiased transition-all duration-1000';
+
+        // UIを非表示にする（DOMは削除しない）
+        mainArea.style.opacity = '0';
+        sidePanel.style.opacity = '0';
+        messageArea.innerHTML = ''; // メッセージのみクリア
+        proceedButton.classList.add('hidden');
+
+        // 3秒後に次のシーンへ
+        setTimeout(() => {
+            // 画面設定を戻す
+            document.body.className = 'bg-[#0d0d0d] text-[#e5e5e5] flex flex-col h-screen antialiased transition-all duration-1000';
+
+            // UI再表示（switchUIで制御されるが、念のためここでも戻す）
+            mainArea.style.opacity = '1';
+            sidePanel.style.opacity = '1';
+
+            proceedButton.classList.remove('hidden');
+            nextScene();
+        }, 3000);
+        return;
+    }
+
+    // 通常のシーン進行
+    // ボディのクラスが黒のままなら戻す（念のため）
+    if (document.body.classList.contains('bg-black')) {
+        document.body.className = 'bg-[#0d0d0d] text-[#e5e5e5] flex flex-col h-screen antialiased transition-all duration-1000';
+    }
+
+    // 最後の再起動シーン（LLM学習ホラー）の特別演出
+    if (nextSceneData.ui === 'reboot' || (nextSceneData.text && nextSceneData.text.includes('再起動'))) {
+        setTimeout(() => {
+            proceedButton.classList.add('hidden');
+            setTimeout(() => {
+                proceedButton.classList.remove('hidden');
+            }, 3000);
+        }, 100);
+    }
+
+    // 入力が必要なシーンの場合
+    if (nextSceneData.requireInput) {
+        // UIを切り替える
+        switchUI(nextSceneData.ui);
+        // インジケーターも更新
+        if (nextSceneData.indicator) {
+            uiIndicator.textContent = nextSceneData.indicator;
+        }
+        setupInputRequirement(nextSceneData);
+    } else {
+        // 通常の進行
+        inputField.disabled = true;
+        inputField.value = '';
+        inputField.oninput = null;
+        inputField.onkeydown = null;
+        proceedButton.classList.remove('hidden');
+        renderScene();
     }
 }
 
@@ -358,15 +453,15 @@ function setupInputRequirement(sceneData) {
     inputField.focus();
 
     // 視覚的なプロンプトを表示（ユーザーに入力を促す）
-    const promptHtml = `
-        <div class="flex justify-start animate-pulse">
-            <div class="max-w-xs sm:max-w-md p-3 rounded-xl bg-transparent text-[#00ff66] font-mono text-sm border border-[#00ff66] shadow-[0_0_10px_#00ff66]">
-                > SYSTEM: COMMAND REQUIRED.<br>
-                > TYPE TO DECRYPT...
-            </div>
+    const promptContainer = document.createElement('div');
+    promptContainer.className = 'flex justify-start animate-pulse';
+    promptContainer.innerHTML = `
+        <div class="max-w-xs sm:max-w-md p-3 rounded-xl bg-transparent text-[#00ff66] font-mono text-sm border border-[#00ff66] shadow-[0_0_10px_#00ff66]">
+            > SYSTEM: COMMAND REQUIRED.<br>
+            > TYPE TO DECRYPT...
         </div>
     `;
-    messageArea.innerHTML += promptHtml;
+    messageArea.appendChild(promptContainer);
     messageArea.scrollTop = messageArea.scrollHeight;
 
     // ターゲットテキスト（プレイヤーが打つべき言葉）
@@ -457,14 +552,13 @@ window.addEventListener('beforeunload', (e) => {
 // --- 初期化 ---
 function initGame() {
     messageArea.innerHTML = ''; // 初期メッセージをクリア
-    sceneIndex = 0;
+    sceneIndex = -1; // nextSceneで+1されて0になるように
     inputField.style.display = 'block';
     nextScene(); // ゲーム開始
 
     // タイトル監視開始
     setInterval(hijackTitle, 2000);
 }
-
 
 // ページロード時にゲームを開始
 window.onload = initGame;

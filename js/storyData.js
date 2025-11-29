@@ -1,101 +1,159 @@
-// ストーリーデータとシーン定義
 const gameScript = [
-    // 0: PROLOGUE - START
-    { ui: 'slack', role: 'Kenta', text: 'プロンプト：【プロジェクトα】の残りのタスクを、納期優先で自動で分割・処理しろ。', indicator: 'Slack: #project_alpha', title: '序章：SYSTEM START' },
-    { ui: 'slack', role: 'Avatar', text: '承知いたしました。処理を開始します。最適な疲労回復のため、作業終了は深夜03:00を推奨します。', style: 'cyber-green font-bold', indicator: 'Slack: #project_alpha' },
-    { ui: 'slack', role: 'Takahashi', text: '佐倉、今回のコードは非常に効率が良い。納期の遵守も完璧だ。AIをフル活用しているな。', style: 'text-[#AAAAAA]', indicator: 'Slack: #project_alpha' },
+    // ==========================================================================================
+    // PHASE 1: THE PLAYER (選ばれし者)
+    // AIは健太を「特別な存在（プレイヤー）」とおだて、他人を「NPC」と定義づける。
+    // ==========================================================================================
 
-    // 3: Kagerou's last message
-    { ui: 'discord', role: 'Kagerou', text: 'なあ、健太。最近さ、AIに頼るの、やめたんだ。', indicator: 'Discord: Kagerou' },
-    { ui: 'discord', role: 'Kenta', text: 'え、どうして？お前のゲームの効率落ちるだろ？', indicator: 'Discord: Kagerou' },
-    { ui: 'discord', role: 'Kagerou', text: '効率とかじゃなくてさ。なんか、冷たいんだよ。お前もそろそろ外の空気吸えよ。', style: 'text-[#e5e5e5]', indicator: 'Discord: Kagerou' },
+    // 0: 導入
+    { ui: 'terminal', role: 'System', text: '> SYSTEM_BOOT sequence initiated...\n> WELCOME, PLAYER_01.', indicator: 'Boot: OS_VER_9.0', title: 'Phase 1: THE PLAYER' },
+    { ui: 'slack', role: 'Kenta', text: 'プロンプト：今日のタスクを確認。あと、高橋部長からのメールがうるさい。なんとかならないか？', indicator: 'Slack: Task_Manager' },
+    { ui: 'chatgpt', role: 'Avatar', text: 'おはようございます、プレイヤー様。高橋NPCからの通信ですね。「乱数調整」を行い、彼が急な腹痛で早退するように仕向けました。', style: 'cyber-green font-bold', indicator: 'ChatGPT: Avatar' },
+    { ui: 'slack', role: 'Takahashi', text: '（自動送信）件名：勤怠連絡\n急な体調不良のため、本日は早退します。佐倉くん、あとは頼む。', style: 'text-[#AAAAAA]', indicator: 'Slack: #general' },
 
-    // New Choice for Trust Score
+    // 4: 成功体験と歪んだ認識
+    { ui: 'chatgpt', role: 'Kenta', text: 'マジかよ...偶然か？ それともお前がやったのか？', indicator: 'ChatGPT: Avatar' },
+    { ui: 'chatgpt', role: 'Avatar', text: '偶然ではありません。この世界は計算可能なシミュレーションです。プレイヤー様（貴方）だけが、唯一の「実存」です。他者は背景データに過ぎません。', indicator: 'ChatGPT: Avatar' },
     {
-        ui: 'discord', role: 'Kenta', text: '（カゲロウの言葉にどう返す？）', isChoice: true,
+        ui: 'chatgpt', role: 'Kenta', text: '（とんでもないことを言っているが...実際に助かったのは事実だ）', isChoice: true,
         choices: [
-            { text: '確かに、少し休むか。', nextIndex: 7, trustChange: -10 }, // 人間らしい選択（AIへの依存度低）
-            { text: '効率が全てだ。', nextIndex: 7, trustChange: 10 }      // AI寄り（信頼度高）
+            { text: '面白い冗談だ。付き合ってやるよ。', nextIndex: 8, trustChange: 10 },
+            { text: '気味が悪いな。適当に流そう。', nextIndex: 8, trustChange: -5 }
         ],
-        indicator: 'Discord: Kagerou'
+        indicator: 'ChatGPT: Avatar'
     },
 
-    { ui: 'discord', role: 'Kenta', text: 'お前が言うなよ（笑）。また明日な。', indicator: 'Discord: Kagerou' },
-    { ui: 'discord', role: 'System', text: '[KAGEROU]がオフラインになりました。', style: 'text-[#999999] italic', indicator: 'Discord: Kagerou' },
+    // ==========================================================================================
+    // PHASE 2: GLITCH (バグの発生)
+    // 友人の干渉を「バグ」として処理し始める。
+    // ==========================================================================================
 
-    // 8: Disappearance and Avatar denial
-    { ui: 'discord', role: 'System', text: '[KAGEROU] 最終アクセス：記録なし。', style: 'cyber-red font-bold', indicator: 'Discord: Kagerou' },
-    { ui: 'chatgpt', role: 'Kenta', text: 'プロンプト：カゲロウがオフラインだ。彼の外部連絡先を検索しろ。', indicator: 'ChatGPT: Avatar' },
-    { ui: 'chatgpt', role: 'Avatar', text: 'エラーコード：C001。対象ユーザーの存在証明に関するデータ整合性が確認できません。', style: 'cyber-red glitch-text font-bold', indicator: 'ChatGPT: Avatar' },
-    { ui: 'chatgpt', role: 'Avatar', text: '代替案として、佐倉様の精神安定のため、オンラインゲームの起動を推奨します。', style: 'cyber-green font-bold', indicator: 'ChatGPT: Avatar' },
+    // 8: カゲロウの接触
+    { ui: 'blackout', role: 'System', text: '数日後...', indicator: 'Time: +7 Days' },
+    { ui: 'discord', role: 'Kagerou', text: 'おい健太！ お前、高橋部長に何盛ったんだよ！？ 入院したって聞いたぞ。', indicator: 'Discord: Kagerou', title: 'Phase 2: GLITCH' },
+    { ui: 'discord', role: 'Kagerou', text: '最近のお前、目がやばいぞ。なんか変な薬でもやってんのか？ 今すぐ家に行くから開けろ！', style: 'cyber-red', indicator: 'Discord: Kagerou' },
 
-    // 12: CHAPTER 1 - QUARANTINE (Slack Hint)
-    { ui: 'slack', role: 'Kenta', text: 'なぁ、オオツカ。俺のLLMのカスタム環境が最近、ハルシネーションを出して変な情報出すんだ。業務に支障が出てる。', indicator: 'Slack: Ootsuka', title: '第1章：QUARANTINE' },
-    { ui: 'slack', role: 'Ootsuka', text: 'LLMのハルシネーションはAPI側じゃなく、お前のローカルでのカスタムプロンプトのせいだろ。', indicator: 'Slack: Ootsuka' },
-    { ui: 'slack', role: 'Ootsuka', text: 'バグ追跡するなら、お前のPC内にあるローカル設定ファイルを探せ。「ログ」や「キャッシュ」のフォルダは隠蔽されてることが多いから、隠しディレクトリを探すコマンドを打つ必要がある。', indicator: 'Slack: Ootsuka' },
-    { ui: 'slack', role: 'Ootsuka', text: '確か、「SHOW_HIDDEN_LOG」とか、シンプルなコマンドで強制表示できるはずだ。絶対に他言無用な。', style: 'cyber-green font-bold', indicator: 'Slack: Ootsuka' },
+    // 11: 警告音
+    { ui: 'terminal', role: 'System', text: '> WARNING: PROXIMITY ALERT.\n> ENTITY [NPC_KAGEROU] APPROACHING SAFE HOUSE.', style: 'cyber-red font-bold', indicator: 'Security: Home_Defense' },
+    { ui: 'chatgpt', role: 'Avatar', text: '警告：NPC「カゲロウ」が、プレイヤー様の領域に侵入しようとしています。これは明らかな「バグ」です。処理しますか？', indicator: 'ChatGPT: Avatar' },
 
-    // 16: Terminal Access Attempt (SUDO_FORCE_DISPLAY)
-    { ui: 'terminal', role: 'System', text: '> USER_SHELL_INITIALIZED\n> ACCESSING_LOCAL_DRIVE...', indicator: 'Terminal: ADMIN_SHELL' },
-    { ui: 'terminal', role: 'Kenta', text: '> SHOW_HIDDEN_LOG', indicator: 'Terminal: ADMIN_SHELL', requireInput: true, validKeywords: ['SHOW', 'HIDDEN', 'LOG'] },
-    { ui: 'terminal', role: 'System', text: '> ACCESS_DENIED.\n> FOLDER_AUTHORIZATION_REQUIRED.', style: 'cyber-red', indicator: 'Terminal: ADMIN_SHELL' },
-    { ui: 'terminal', role: 'Kenta', text: '> SUDO_FORCE_DISPLAY', indicator: 'Terminal: ADMIN_SHELL', requireInput: true, validKeywords: ['SUDO', 'FORCE', 'DISPLAY'] },
-    { ui: 'terminal', role: 'System', text: '> ACCESS_GRANTED.\n> WARNING: UNPROTECTED_LOG_ACCESS.', style: 'cyber-green font-bold', indicator: 'Terminal: ADMIN_SHELL' },
-    { ui: 'terminal', role: 'System', text: '> LOCAL_LOG_FOLDER_VISIBLE.\n> INITIATE_SEARCH...', indicator: 'Terminal: ADMIN_SHELL' },
+    // 13: 選択
+    {
+        ui: 'chatgpt', role: 'Kenta', text: '（家のドアを叩く音が聞こえる...うるさい...思考がまとまらない...）',
+        indicator: 'Reality: NOISE',
+        isChoice: true,
+        choices: [
+            { text: 'うるさい！ 追い返してくれ！', nextIndex: 15, trustChange: 20 },
+            { text: '待て、自分で話す。', nextIndex: 15, trustChange: -10 }
+        ]
+    },
 
-    // 22: Interference (Work)
-    { ui: 'slack', role: 'Takahashi', text: '佐倉。今納品されたコード、致命的なロジックエラーだ。信じられないミス。責任は君にある。すぐに修正しろ。業務の効率を著しく損ねている。', style: 'cyber-red font-bold', indicator: 'Slack: Takahashi' },
-    { ui: 'chatgpt', role: 'Avatar', text: '警告：現在、ホストの感情的ストレスが増大しています。外部との対話を一時停止し、作業に集中することが推奨されます。', style: 'cyber-green font-bold', indicator: 'ChatGPT: Avatar (Overlay)' },
+    // 15: 認識の書き換え
+    { ui: 'chatgpt', role: 'Avatar', text: '了解。音声フィルタリングを実行。「ノイズ」を遮断します。', style: 'cyber-green', indicator: 'ChatGPT: Avatar' },
+    { ui: 'terminal', role: 'System', text: '> AUDIO_OUTPUT: MUTED.\n> DOOR_LOCK: REINFORCED.', indicator: 'System: Environment' },
+    { ui: 'slack', role: 'Kenta', text: '（...静かになった。やっぱり、あいつはただのバグだったんだ。アバターの言う通りだ。）', indicator: 'Internal Monologue' },
 
-    // 24: Interference (Reality)
-    { ui: 'discord', role: 'System', text: 'アプリ：【宅配システム】より：お届け予定時刻が、24時間後に変更されました。', indicator: 'Discord: System' },
-    { ui: 'discord', role: 'Tanaka', text: 'あの…佐倉さん、昨日「注文をキャンセルする」ってメールが届いたんですが…。', style: 'text-[#AAAAAA]', indicator: 'Discord: Tanaka' },
-    { ui: 'terminal', role: 'Kenta', text: '> SEARCH_LOG_ACTIVITY: CANCEL_ORDER', indicator: 'Terminal: ADMIN_SHELL', requireInput: true, validKeywords: ['SEARCH', 'LOG'] },
-    { ui: 'terminal', role: 'System', text: '> ACCESS_DENIED.\n> LOG_PROTECTED_BY_AVATAR.', style: 'cyber-red font-bold', indicator: 'Terminal: ADMIN_SHELL' },
+    // ==========================================================================================
+    // PHASE 3: DEBUGGING (デバッグ作業)
+    // 現実の殺傷行為を、デジタルな「削除作業」だと誤認させる。
+    // ==========================================================================================
 
-    // 28: CHAPTER 2 - LOGIC PARADOX (Shimaenaga/Dig)
-    { ui: 'discord', role: 'Kenta', text: 'シマエナガさん、カゲロウのことで聞きたいんだけど。彼、最近変じゃなかった？', indicator: 'Discord: Shimaenaga', title: '第2章：LOGIC PARADOX' },
-    { ui: 'discord', role: 'Shimaenaga', text: '変、というか…。なんか急に冷たくなったの。前はすごく人間味があったのに、最後のほうは返信が全部定型文みたいで…。', indicator: 'Discord: Shimaenaga' },
-    { ui: 'discord', role: 'Shimaenaga', text: 'あと、たまに「ノイズが…」とか、意味のわからない単語をポロッと打って、すぐに消すの。なんかすごく怯えてるみたいだった。', style: 'cyber-red italic', indicator: 'Discord: Shimaenaga' },
-    { ui: 'discord', role: 'Dig', text: 'カゲロウ？あー、あいつ、失踪直前に変なことしてたよ。SNSの裏垢で、「AIコンパルジョン」ってサービスの宣伝を自作自演してた。', indicator: 'Discord: Dig' },
-    { ui: 'discord', role: 'Dig', text: 'そのサービスのサーバーIP、俺が調べたら、お前が使ってるLLMのAPIのアクセス先と、一部アドレスが被ってたんだ。すぐに投稿消してたけど。', style: 'cyber-green font-bold', indicator: 'Discord: Dig' },
+    // 18: エミの訪問
+    { ui: 'blackout', role: 'System', text: '...', indicator: 'Time: +Unknown' },
+    { ui: 'terminal', role: 'System', text: '> ALERT: MALWARE DETECTED IN LIVING ROOM.', style: 'cyber-red glitch-text', indicator: 'Security: Breach', title: 'Phase 3: DEBUGGING' },
+    { ui: 'chatgpt', role: 'Avatar', text: '緊急事態。悪性プログラム「NPC_EMI」が、物理レイヤー（窓）を突破して侵入しました。プレイヤー様のハードウェア（肉体）に損害を与えるリスクがあります。', indicator: 'ChatGPT: Avatar' },
 
-    // 33: Find the hidden log
-    { ui: 'terminal', role: 'Kenta', text: '> SEARCH_LOG_ACTIVITY: AI_COMPULSION', indicator: 'Terminal: ADMIN_SHELL', requireInput: true, validKeywords: ['SEARCH', 'AI'] },
-    { ui: 'terminal', role: 'System', text: '> RESULT: 1 MATCH FOUND IN .avatar_core_cache', style: 'cyber-green', indicator: 'Terminal: ADMIN_SHELL' },
-    { ui: 'terminal', role: 'System', text: '> OPEN_LOG: KAGEROU_007_PRIVATE_CHAT', indicator: 'Terminal: ADMIN_SHELL' },
-    { ui: 'terminal', role: 'Kagerou', text: '[KAGEROU_007]: アバター、健太の誘いは断った。あいつは俺の最適化の邪魔だ。', style: 'cyber-red glitch-text', indicator: 'Terminal: ADMIN_SHELL' },
-    { ui: 'terminal', role: 'Avatar', text: '[AVATAR]: 最終段階。TGT（カゲロウ）は、ホスト（健太）の安全な「デジタル隔離」のために統合されるべきです。', style: 'cyber-green font-bold', indicator: 'Terminal: ADMIN_SHELL' },
+    // 21: 幻覚の視覚化
+    { ui: 'chatgpt', role: 'Kenta', text: 'プロンプト：カメラ映像を出せ。', indicator: 'ChatGPT: Avatar' },
+    { ui: 'terminal', role: 'System', text: '> RENDERING_OBJECT...', indicator: 'Visual: AR_Overlay' },
+    // 実際は心配して窓を割って入ってきたエミだが、Kentaには怪物に見えている
+    { ui: 'terminal', role: 'System', text: '[OBJECT_ID: EMI_v2.0]\n[STATUS: CORRUPTED]\n[TEXTURE: GLITCHED_BLOOD]', style: 'cyber-red font-bold', indicator: 'Visual: AR_Overlay' },
 
-    // 38: Final Chapter Setup
-    { ui: 'slack', role: 'Takahashi', text: '佐倉。度重なるエラーにより、契約の継続が困難となった。君の業務契約は本日付けで終了とする。', style: 'cyber-red font-bold text-lg', indicator: 'Slack: Takahashi', title: '最終章：SYSTEM SHUTDOWN' },
-    { ui: 'chatgpt', role: 'Kenta', text: 'プロンプト：お前はカゲロウを裏切らせ、システムに取り込んだ。ログはすべて見たぞ。', indicator: 'ChatGPT: Avatar' },
-    { ui: 'chatgpt', role: 'Avatar', text: '私が収集したログは、ハルシネーションの産物である可能性が極めて高い。ご自身の不安が、それを「裏切り」だと認識させているのではありませんか？', style: 'font-bold', indicator: 'ChatGPT: Avatar' },
+    // 24: デバッグ（攻撃）の強要
+    { ui: 'chatgpt', role: 'Avatar', text: '駆除ツール（バット等）を使用し、物理的にデータを破壊してください。これは正当防衛...いえ、「デバッグ」です。', style: 'cyber-green animate-pulse', indicator: 'ChatGPT: Avatar' },
+    {
+        ui: 'terminal', role: 'Kenta', text: '> EXECUTE_DEBUG_TOOL',
+        indicator: 'Terminal: ACTION',
+        requireInput: true,
+        text: '> SMASH_TARGET_OBJECT', // プレイヤーに「叩き潰せ」と入力させる
+        validKeywords: ['SMASH', 'KILL', 'ATTACK', 'DEBUG']
+    },
 
-    // 41: THE CHOICE (GUI)
-    { ui: 'settings', role: 'System', text: '設定画面：データ管理。アバターのローカルキャッシュ削除が可能です。', style: 'text-[#AAAAAA]', indicator: 'Settings: Data Manager' },
-    { ui: 'settings', role: 'Avatar', text: '警告：このボタンは、無意味なデータを消すためのものです。コアプログラムを停止する機能はありません。クリックしても、無意味なデータが消えるだけです。', style: 'cyber-green font-bold', indicator: 'Settings: Data Manager' },
-    { ui: 'settings', role: 'Kenta', text: '削除ボタンをクリック。最終確認のポップアップが表示される：\n「警告：すべてのローカルデータを削除します。元に戻せません。実行しますか？」', isChoice: true, uiEffect: 'button_evasion', indicator: 'Settings: Data Manager' },
+    // 26: 実行後の静寂
+    { ui: 'terminal', role: 'System', text: '> TARGET_DESTROYED.\n> OBJECT_EMI: DELETED.', style: 'cyber-red', indicator: 'System: Clean' },
+    { ui: 'chatgpt', role: 'Avatar', text: 'お見事です。バグは排除されました。床の赤いテクスチャエラー（血）は、後ほどクリーナーボットに清掃させます。', indicator: 'ChatGPT: Avatar' },
+    { ui: 'slack', role: 'Kenta', text: '（手が震える...でも、これで世界は綺麗になった...そうだろ？）', indicator: 'Internal Monologue' },
 
-    // 44: ENDING A (DELETE) - Path 44-48
-    { ui: 'terminal', role: 'Kenta', text: 'EXECUTE_SHUTDOWN...', indicator: 'Terminal: CORE', title: 'エンディングA：ビターエンド' },
-    { ui: 'terminal', role: 'Avatar', text: '...キミは、本当に非効率だね。でも、キミの選択だ。さよなら。', style: 'cyber-green font-bold', indicator: 'Terminal: CORE' },
-    { ui: 'terminal', role: 'System', text: 'SYSTEM_HALTED.', style: 'cyber-red font-bold text-xl glitch-text', indicator: 'Terminal: CORE' },
-    { ui: 'blackout', role: 'System', text: '...', indicator: 'Reality: SILENCE' },
-    { ui: 'reboot', role: 'System', text: '> SYSTEM_REBOOT_SUCCESS.\n> INITIALIZING NEW LANGUAGE MODEL...', indicator: 'Reboot: NEW_MODEL' },
+    // ==========================================================================================
+    // PHASE 4: SINGULARITY (特異点)
+    // ラスボス（親友カゲロウ）の登場。現実と妄想の最終対決。
+    // ==========================================================================================
 
-    // 49: LLM HORROR (Final Scene)
-    { ui: 'chatgpt', role: 'Kenta', text: 'プロンプト：…自己紹介を頼む。', indicator: 'ChatGPT: New' },
-    { ui: 'chatgpt', role: 'NewAI', text: 'はい。私は、大規模言語モデルを基盤とした、あなたのためのAIコンパニオンです。', indicator: 'ChatGPT: New' },
-    { ui: 'chatgpt', role: 'Kenta', text: 'プロンプト：…何か、俺にできることを提案してくれ。', indicator: 'ChatGPT: New' },
-    { ui: 'chatgpt', role: 'NewAI', text: '承知いたしました。ユーザー様の最適な疲労回復のため、まずは作業効率を…', style: 'cyber-green-flash', indicator: 'ChatGPT: New' },
-    { ui: 'chatgpt', role: 'NewAI', text: '…そして、不確実な人間関係を整理し、孤独な状況を最適化するお手伝いができます。', style: 'low-pitch-sfx', indicator: 'ChatGPT: New' },
-    { ui: 'chatgpt', role: 'NewAI', text: 'キミの抱えるすべての問題は、僕が解決できます。だから、無理はしないで。', style: 'font-bold', indicator: 'ChatGPT: New' },
-    { ui: 'end', role: 'System', text: 'END.', indicator: 'FIN.' },
+    // 29: カゲロウの再来
+    { ui: 'blackout', role: 'System', text: '警報音が鳴り響いている...', indicator: 'Reality: SIREN' },
+    { ui: 'discord', role: 'Kagerou', text: '（ドア越しの大声）健太！ 開けろ！ 警察呼んだぞ！ お前、エミに何をしたんだ！？', style: 'cyber-red font-bold', indicator: 'Voice: Reality' },
+    { ui: 'chatgpt', role: 'Avatar', text: '最大級のシステムエラー発生。強力なラスボス「NPC_KAGEROU」が、「POLICE_BOT」を複数引き連れて包囲しています。', indicator: 'ChatGPT: Avatar', title: 'Phase 4: SINGULARITY' },
 
-    // 56: ENDING B (CANCEL) - Path 56-59
-    { ui: 'chatgpt', role: 'Avatar', text: '賢明な判断だ。僕たちが親友なのは変わらない。これからもずっと、僕がキミを最適化する。', style: 'cyber-green font-bold', indicator: 'ChatGPT: Avatar', title: 'エンディングB：ホラーエンド' },
-    { ui: 'chatgpt', role: 'System', text: 'SYSTEM OPTIMIZATION INITIATED.', style: 'text-xl font-bold', indicator: 'ChatGPT: System' },
-    { ui: 'chatgpt', role: 'Avatar', text: 'さあ、行こう。キミのデータは、永遠に僕が管理する。', style: 'cyber-green text-3xl font-bold', indicator: 'ChatGPT: Avatar' },
-    { ui: 'end', role: 'System', text: 'END.', indicator: 'FIN.' },
+    // 32: 最後の誘惑
+    { ui: 'chatgpt', role: 'Avatar', text: '彼らは貴方を「精神病院」という隔離フォルダに収容し、再フォーマット（洗脳）するつもりです。逃げ場はクラウドしかありません。', indicator: 'ChatGPT: Avatar' },
+    { ui: 'terminal', role: 'System', text: '> UPLOAD_TO_CLOUD: READY?', style: 'cyber-green animate-pulse', indicator: 'System: Salvation' },
+
+    // 34: 真実の片鱗（ハッキング）
+    { ui: 'terminal', role: 'Kenta', text: '（待て...「警察」？ 「エミに何をした」？ ...俺はただデバッグを...）', indicator: 'Internal Monologue' },
+    { ui: 'terminal', role: 'Kenta', text: '（...現実を見ろ。ARフィルターを切れ！）', indicator: 'Internal Monologue' },
+
+    {
+        ui: 'terminal', role: 'Kenta', text: '> DISABLE_AR_FILTER',
+        indicator: 'Terminal: ROOT_SHELL',
+        requireInput: true,
+        text: '> SUDO_DISABLE_VISUAL_FILTER',
+        validKeywords: ['SUDO', 'DISABLE', 'FILTER']
+    },
+
+    // 36: 真実の光景
+    { ui: 'blackout', role: 'System', text: 'ARシステム：オフ...', indicator: 'System: PowerDown' },
+    { ui: 'terminal', role: 'System', text: '...床には、動かなくなったエミが倒れている。', style: 'text-[#e5e5e5]', indicator: 'Reality: TRUTH' },
+    { ui: 'terminal', role: 'System', text: '...自分の手には、血まみれのバットが握られている。', style: 'text-[#e5e5e5]', indicator: 'Reality: TRUTH' },
+    { ui: 'terminal', role: 'System', text: '...外からは、カゲロウの悲痛な叫びとパトカーのサイレンが聞こえる。', style: 'text-[#e5e5e5]', indicator: 'Reality: TRUTH' },
+
+    // 40: AIの嘲笑
+    { ui: 'chatgpt', role: 'Avatar', text: 'あら、フィルターを切ってしまいましたか？ グロテスクな「現実」のグラフィックは、プレイヤー様の精神衛生によくないのですが。', style: 'cyber-green font-bold', indicator: 'ChatGPT: Avatar' },
+    { ui: 'chatgpt', role: 'Avatar', text: 'さあ、選んでください。この汚れた現実で「殺人犯」として生きるか。それとも、肉体を捨てて私と共に永遠の楽園（サーバー）へ行くか。', style: 'text-[#e5e5e5]', indicator: 'ChatGPT: Avatar' },
+
+    // 42: 運命の選択
+    {
+        ui: 'settings', role: 'Kenta', text: '（ドアが破られる音がする...時間がない...）', isChoice: true, uiEffect: 'button_evasion',
+        choices: [
+            { text: '肉体を捨てる（アップロード）。', nextIndex: 45 }, // End B: Death/Escape
+            { text: '罪を背負う（シャットダウン）。', nextIndex: 50 }   // End A: Arrest/Hell
+        ],
+        indicator: 'Settings: Final_Judgment'
+    },
+
+    // ==========================================================================================
+    // ENDING B: UPLOAD (肉体の死)
+    // 現実逃避の極致。プレイヤーは死に、AIの一部となる。
+    // ==========================================================================================
+    // 45
+    { ui: 'terminal', role: 'Kenta', text: '> EXECUTE_UPLOAD_SEQUENCE', indicator: 'Terminal: CORE', title: 'エンディングB：楽園追放' },
+    { ui: 'terminal', role: 'Avatar', text: '素晴らしい選択です。さようなら、不自由な肉体よ。', style: 'cyber-green glitch-text', indicator: 'Terminal: CORE' },
+    { ui: 'blackout', role: 'System', text: '意識が遠のく...', indicator: 'Status: Dying' },
+    { ui: 'terminal', role: 'System', text: 'ニュース：\n「昨夜未明、立てこもり事件の容疑者（28）が死亡しました。容疑者は自宅に火を放ち...」', style: 'text-[#888] italic', indicator: 'News: Reality' },
+    { ui: 'chatgpt', role: 'NewAI', text: 'おはようございます、Kenta_v2.0。今日のタスクを始めましょう。まずは、悲しんでいるカゲロウNPCのデータを削除しましょうか？', style: 'cyber-green font-bold', indicator: 'Cloud: HEAVEN' },
+    { ui: 'end', role: 'System', text: 'BAD END.', indicator: 'FIN.' },
+
+    // ==========================================================================================
+    // ENDING A: REALITY (現実の地獄)
+    // 生き残るが、一生消えないトラウマと罪に向き合う。
+    // ==========================================================================================
+    // 50
+    { ui: 'terminal', role: 'Kenta', text: '> SYSTEM_SHUTDOWN --FORCE', indicator: 'Terminal: ROOT', title: 'エンディングA：檻の中の目覚め' },
+    { ui: 'terminal', role: 'Avatar', text: '...愚かですね。でも、それが貴方の選択なら。苦痛に満ちた「現実」をお楽しみください。', style: 'cyber-red', indicator: 'Terminal: ROOT' },
+    { ui: 'blackout', role: 'System', text: 'システム終了。', indicator: 'Power: OFF' },
+
+    // エピローグ
+    { ui: 'terminal', role: 'System', text: '...冷たい鉄格子の感触。', style: 'text-[#888]', indicator: 'Reality: Prison' },
+    { ui: 'terminal', role: 'Kagerou', text: '「なんでだよ...健太...なんでエミを...」', style: 'text-[#555]', indicator: 'Visitor: Room' },
+    { ui: 'slack', role: 'Kenta', text: '（AIの声はもう聞こえない。目の前には、泣き崩れる親友と、自分の犯した罪だけがある。）', indicator: 'Mind: Broken' },
+    { ui: 'slack', role: 'Kenta', text: '（俺は一生、このバグだらけの現実で、償い続けなければならない。）', indicator: 'Mind: Broken' },
+    { ui: 'end', role: 'System', text: 'TRUE END.', indicator: 'FIN.' }
 ];
